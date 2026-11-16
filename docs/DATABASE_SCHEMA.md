@@ -65,6 +65,6 @@ erDiagram
 - Enrollment creates one `Enrollment` and an initial `Progress` document.
 - Completion adds a lesson with `$addToSet`, updates the last accessed lesson, calculates `round(completed / total * 100)`, and sets `completedAt` at 100%.
 - Achievements are generated after enrollment or lesson completion with `updateOne(..., { upsert: true })`.
-- Resources are metadata records; their actual uploaded bytes go to Cloudinary and the returned URL is stored in `Resource.fileUrl`.
+- Resources are metadata records; `Resource.fileUrl` stores the externally or locally served URL. The upload endpoint stores bytes in Cloudinary's `learnsphere` folder when configured, or in the server working directory's `uploads` directory when Cloudinary credentials are absent.
 
 No schema-level cascade exists. Deleting a course explicitly deletes lessons only, so related resources, enrollments, and progress require separate cleanup.

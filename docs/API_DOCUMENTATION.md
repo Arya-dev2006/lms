@@ -39,7 +39,7 @@ Course create/update fields are `title`, `description`, `category`, `difficulty`
 
 `/admin/users` accepts `search`, `page`, and `limit`; its user records include `enrolledCourses`, `completed`, and average completion. `/admin/users/:userId` returns `{ user, progress }`.
 
-Upload accepts field `file`, allows JPEG/PNG/WebP/MP4/WebM/PDF, and caps memory-buffer size at 100 MB. Success returns `{ asset: { url, publicId, resourceType } }`; missing Cloudinary configuration returns `503`.
+Upload accepts field `file`, allows JPEG/PNG/WebP/MP4/WebM/PDF, and caps the in-memory buffer at 100 MB. Success returns `{ asset: { url, publicId, resourceType } }`; local-disk responses also include `storage: "local"`. With all three Cloudinary variables configured, the buffer is streamed to the `learnsphere` Cloudinary folder. Otherwise, the controller creates `<server working directory>\uploads`, writes a UUID-based filename while preserving the lower-case extension, and serves the file through `/uploads/<filename>`.
 
 ## Course authoring endpoints
 

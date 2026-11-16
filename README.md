@@ -102,9 +102,13 @@ Upload endpoint:
 
 - `POST /api/uploads` (admin only, multipart field: `file`)
 
-Cloudinary uploads require `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
-and `CLOUDINARY_API_SECRET`. If these values are not configured, the endpoint
-returns HTTP 503 rather than silently pretending the upload succeeded.
+Uploads are validated by Multer in memory (JPEG, PNG, WebP, MP4, WebM, and PDF;
+100 MB maximum). When `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET` are all configured, the upload controller streams the
+buffer to Cloudinary's `learnsphere` folder. Otherwise, it creates
+`<process.cwd>\uploads`, writes a UUID-named file there, and serves it from
+`/uploads/<filename>`. When started from the repository root with the
+documented command, this is `D:\Online course\uploads`.
 
 ## Verification
 

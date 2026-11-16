@@ -14,7 +14,7 @@ The admin seed script upserts a configured admin with a bcrypt password and `rol
 
 ## Course creation and upload
 
-`AdminCourseForm` sends `POST /uploads` as multipart `file` for a thumbnail. The route executes `protect -> requireRole -> upload.single('file') -> uploadAsset`; Multer validates MIME type/size, then Cloudinary returns a URL. The form sends `POST /courses` or `PUT /courses/:id` with the URL, course fields, and newline-derived objectives. `createCourse` slugifies the title and stores the admin ID in `Course.createdBy`.
+`AdminCourseForm` sends `POST /uploads` as multipart `file` for a thumbnail. The route executes `protect -> requireRole -> upload.single('file') -> uploadAsset`; Multer validates the MIME type and 100 MB limit in memory, then `uploadAsset` sends the buffer to Cloudinary's `learnsphere` folder when configured or writes a UUID-named file to the server's `uploads` directory otherwise. The returned URL is sent in `POST /courses` or `PUT /courses/:id` with the course fields and newline-derived objectives. `createCourse` slugifies the title and stores the admin ID in `Course.createdBy`.
 
 Lesson and resource APIs exist for admin authoring. No current client page calls the lesson/resource create endpoints, so those operations require an external API client or future UI.
 

@@ -5,6 +5,10 @@ function slugify(value) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+function courseSlug(title) {
+  return slugify(title) || `course-${Date.now()}`;
+}
+
 export async function listCourses(request, response, next) {
   try {
     const filter = request.user?.role === 'admin' ? {} : { isPublished: true };
@@ -37,7 +41,7 @@ export async function createCourse(request, response, next) {
   try {
     const { title, description, category, difficulty, instructor, objectives, thumbnail, isPublished } = request.body;
     const course = await Course.create({
-      title, slug: slugify(title), description, category, difficulty, instructor, thumbnail,
+      title, slug: courseSlug(title), description, category, difficulty, instructor, thumbnail,
       objectives: Array.isArray(objectives) ? objectives : [],
       isPublished: Boolean(isPublished),
       createdBy: request.user._id,
@@ -49,7 +53,7 @@ export async function createCourse(request, response, next) {
 export async function updateCourse(request, response, next) {
   try {
     const updates = { ...request.body };
-    if (updates.title) updates.slug = slugify(updates.title);
+    if (updates.title) updates.slug = courseSlug(updates.title);
     if (updates.objectives && !Array.isArray(updates.objectives)) {
       return response.status(400).json({ success: false, message: 'Objectives must be an array' });
     }

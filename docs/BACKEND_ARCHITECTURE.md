@@ -9,10 +9,11 @@
 1. CORS with `origin: config.clientUrl` and credentials.
 2. JSON parsing with a 2 MB limit.
 3. Cookie parsing.
-4. `/api/health`.
-5. Route modules under their `/api/*` prefixes.
-6. JSON 404 response.
-7. Central error handler.
+4. Static local upload serving at `/uploads` from the server working directory's `uploads` folder.
+5. `/api/health`.
+6. Route modules under their `/api/*` prefixes.
+7. JSON 404 response.
+8. Central error handler.
 
 The error handler exposes generic internal errors, but returns validation, duplicate-key, cast, and upload-specific status/message structures.
 
@@ -50,7 +51,7 @@ flowchart LR
 - `progressController`: lists learner progress; validates lesson/course/enrollment before last-access or completion changes; calculates percentages and completion dates; updates both Progress and Enrollment; awards lesson/course achievements.
 - `achievementController`: returns the current user’s achievements ordered by earned date.
 - `adminController`: supplies public stats, dashboard analytics, learner search/pagination and aggregates, and one learner’s populated progress.
-- `uploadController`: validates that Multer supplied a file, checks Cloudinary configuration, streams the memory buffer to the `learnsphere` folder, and returns a secure URL/public ID/resource type.
+- `uploadController`: validates that Multer supplied a file, then either streams the memory buffer to Cloudinary's `learnsphere` folder or writes it locally with a UUID filename under the server working directory's `uploads` folder. It returns the asset URL, identifier, resource type, and local storage marker when the fallback is used.
 
 ## Authorization chain
 
@@ -76,7 +77,7 @@ sequenceDiagram
 - `utils/auth.js`: token payload is `{ userId }`; cookie is HttpOnly, secure in production, and uses `sameSite=lax` in development or `none` in production.
 - `utils/courseAccess.js`: enrollment gate for learning/resource reads.
 - `utils/achievements.js`: uses unique `(user,type)` and upsert to avoid duplicate awards.
-- `middleware/upload.js`: memory storage, six allowed MIME types, 100 MB limit.
+- `middleware/upload.js`: memory storage, six allowed MIME types, 100 MB limit. Files are not written by Multer itself; the controller chooses Cloudinary or local disk after validation.
 
 ## Backend concerns found in code
 

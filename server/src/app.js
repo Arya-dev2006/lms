@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import path from 'path';
 import { config } from './config/env.js';
 import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -17,6 +18,7 @@ const app = express();
 app.use(cors({ origin: config.clientUrl, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 app.get('/api/health', (_request, response) => {
   response.json({ success: true, message: 'LearnSphere API is running' });
@@ -39,7 +41,8 @@ app.use((_request, response) => {
 app.use((error, _request, response, _next) => {
   console.error(error);
   if (error.name === 'ValidationError') {
-    return response.status(400).json({ success: false, message: 'Validation failed', errors: error.errors });
+    const errors = Object.fromEntries(Object.entries(error.errors).map(([field, detail]) => [field, { message: detail.message }]));
+    return response.status(400).json({ success: false, message: Object.values(errors).map((detail) => detail.message).join(' '), errors });
   }
   if (error.code === 11000) {
     return response.status(409).json({ success: false, message: 'A record with that value already exists' });

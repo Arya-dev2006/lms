@@ -2,14 +2,14 @@
 
 ## Purpose
 
-LearnSphere is a MERN learning-management system. It lets visitors browse published courses, create learner accounts, enroll in courses, watch lessons, download course resources, track lesson/course completion, and earn achievements. Administrators can create and publish courses, manage course records, upload assets through Cloudinary, view platform analytics, and inspect learner summaries.
+LearnSphere is a MERN learning-management system. It lets visitors browse published courses, create learner accounts, enroll in courses, watch lessons, download course resources, track lesson/course completion, and earn achievements. Administrators can create and publish courses, manage course records, upload assets through Cloudinary or local disk fallback, view platform analytics, and inspect learner summaries.
 
 The implementation is split into:
 
 - `client/`: a Vite-powered React single-page application.
 - `server/`: an Express API backed by MongoDB through Mongoose.
 - MongoDB: stores users, courses, lessons, resources, enrollments, progress, and achievements.
-- Cloudinary: optional external storage for uploaded images/video/PDF assets.
+- Upload storage: optional Cloudinary external storage, with a local `<process.cwd>\uploads` fallback when Cloudinary credentials are absent.
 
 ## Architecture
 
@@ -17,7 +17,8 @@ The implementation is split into:
 flowchart LR
   Browser[React SPA] -->|Axios JSON/cookie requests| API[Express API]
   API -->|Mongoose| Mongo[(MongoDB)]
-  API -->|Multipart upload| Cloudinary[(Cloudinary)]
+  API -->|Multipart upload when configured| Cloudinary[(Cloudinary)]
+  API -->|Multipart upload fallback| LocalUploads[(process.cwd/uploads)]
   API -->|HttpOnly JWT cookie| Browser
 ```
 
@@ -42,7 +43,7 @@ flowchart LR
 | Backend | Node.js ES modules, Express 5, cookie-parser, CORS |
 | Persistence | MongoDB with Mongoose 8 |
 | Security | bcryptjs password hashing, jsonwebtoken, HttpOnly cookie JWT |
-| Uploads | Multer memory storage and optional Cloudinary |
+| Uploads | Multer memory validation, optional Cloudinary, or local `<process.cwd>\uploads` |
 | Development | concurrently, nodemon |
 
 ## Operational boundaries
@@ -55,4 +56,4 @@ The application has no server-rendered frontend, test suite, or separate fronten
 - The admin user list displays aggregate progress, but the available per-user progress endpoint is not wired to a detail page.
 - `ProtectedRoute.jsx` exists but is not used by the current router; `main.jsx` defines separate `AdminRoute` and `StudentRoute`.
 - Course deletion removes lessons only. It does not explicitly remove related resources, enrollments, or progress documents.
-- Cloudinary is optional; the upload endpoint returns `503` when its three credentials are absent.
+- Cloudinary is optional; when its three credentials are absent, the upload endpoint writes a UUID-named file to `<process.cwd>\uploads` and serves it from `/uploads/<filename>`.

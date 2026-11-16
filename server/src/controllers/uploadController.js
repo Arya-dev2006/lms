@@ -1,12 +1,28 @@
+import { mkdir, writeFile } from 'fs/promises';
+import path from 'path';
+import { randomUUID } from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
 import { config } from '../config/env.js';
+import { uploadDirectory } from '../config/uploads.js';
 
 export async function uploadAsset(request, response, next) {
   try {
     if (!request.file) return response.status(400).json({ success: false, message: 'A file is required' });
     const { cloudName, apiKey, apiSecret } = config.cloudinary;
     if (!cloudName || !apiKey || !apiSecret) {
-      return response.status(503).json({ success: false, message: 'Cloudinary upload is not configured on the server' });
+      await mkdir(uploadDirectory, { recursive: true });
+      const extension = path.extname(request.file.originalname).toLowerCase() || '.bin';
+      const filename = `${randomUUID()}${extension}`;
+      await writeFile(path.join(uploadDirectory, filename), request.file.buffer);
+      return response.status(201).json({
+        success: true,
+        asset: {
+          url: `${request.protocol}://${request.get('host')}/uploads/${filename}`,
+          publicId: filename,
+          resourceType: request.file.mimetype.startsWith('video/') ? 'video' : 'auto',
+          storage: 'local',
+        },
+      });
     }
     cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
     const resourceType = request.file.mimetype.startsWith('video/') ? 'video' : 'auto';
