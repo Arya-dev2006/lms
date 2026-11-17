@@ -15,6 +15,8 @@ import CourseDetails from './pages/CourseDetails';
 import CourseLearning from './pages/CourseLearning';
 import Achievements from './pages/Achievements';
 import AdminUsers from './pages/AdminUsers';
+import AdminSettings from './pages/AdminSettings';
+import Profile from './pages/Profile';
 
 function AdminRoute({ children }) {
   const { user, loading } = useAuth();
@@ -42,12 +44,14 @@ createRoot(document.getElementById('root')).render(
           <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
           <Route path="/achievements" element={<StudentRoute><Achievements /></StudentRoute>} />
+          <Route path="/profile" element={<StudentRoute><Profile /></StudentRoute>} />
           <Route path="/courses/:courseId/learn" element={<StudentRoute><CourseLearning /></StudentRoute>} />
           <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
           <Route path="/admin/courses/new" element={<AdminRoute><AdminCourseForm /></AdminRoute>} />
           <Route path="/admin/courses/:id/edit" element={<AdminRoute><AdminCourseForm /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster position="top-right" toastOptions={{ duration: 3500 }} />

@@ -24,8 +24,15 @@ export function AuthProvider({ children }) {
     },
     async register(details) {
       const { data } = await api.post('/auth/register', details);
+      return data.user;
+    },
+    async updateProfile(details) {
+      const { data } = await api.put('/auth/me', details);
       setUser(data.user);
       return data.user;
+    },
+    async changePassword(details) {
+      return api.put('/auth/password', details);
     },
     async logout() {
       await api.post('/auth/logout');

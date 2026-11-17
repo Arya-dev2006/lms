@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Check, Compass, LineChart, Play, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, ChevronRight, Compass, LineChart, Play, Sparkles, Target, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PublicNav from '../components/PublicNav';
 import Logo from '../components/Logo';
@@ -13,7 +13,12 @@ const features = [
 
 export default function LandingPage() {
   const [stats, setStats] = useState(null);
-  useEffect(() => { api.get('/courses/stats').then(({ data }) => setStats(data.stats)).catch(() => {}); }, []);
+  const [courses, setCourses] = useState([]);
+  useEffect(() => {
+    Promise.all([api.get('/courses/stats'), api.get('/courses', { params: { limit: 3 } })])
+      .then(([statsResponse, coursesResponse]) => { setStats(statsResponse.data.stats); setCourses(coursesResponse.data.courses); })
+      .catch(() => {});
+  }, []);
   return (
     <div className="marketing-page">
       <PublicNav />
@@ -53,10 +58,25 @@ export default function LandingPage() {
           <p className="section-description">No busywork. No endless scrolling. Just a considered environment designed to help you start, continue, and finish the things that matter to you.</p>
         </section>
 
+        <section className="section-wrap featured-courses">
+          <div className="section-heading-row"><div><p className="kicker">Explore the library</p><h2>Start with something <em>useful.</em></h2></div><Link className="text-link" to="/courses">View all courses <ChevronRight size={16} /></Link></div>
+          <div className="featured-course-grid">{courses.map((course, index) => <Link className="featured-course-card" to={`/courses/${course._id}`} key={course._id}><div className={`featured-course-art art-${index + 1}`}>{course.thumbnail ? <img src={course.thumbnail} alt="" /> : <span>{course.title.slice(0, 1)}</span>}<small>{course.category}</small></div><div className="featured-course-body"><span>{course.difficulty} · {course.instructor}</span><h3>{course.title}</h3><div><span>Explore course</span><ArrowRight size={15} /></div></div></Link>)}</div>
+          {!courses.length && <div className="featured-empty"><BookOpen size={22} /><span>New courses are being prepared. Check the catalogue soon.</span></div>}
+        </section>
+
         <section className="section-wrap feature-grid" id="features">
           {features.map(({ icon: Icon, title, text }, index) => (
             <article className="feature-card" key={title}><span className="feature-number">0{index + 1}</span><Icon size={24} strokeWidth={1.7} /><h3>{title}</h3><p>{text}</p><ArrowRight className="feature-arrow" size={18} /></article>
           ))}
+        </section>
+
+        <section className="section-wrap benefits-section">
+          <div className="benefits-copy"><p className="kicker">Built around your momentum</p><h2>Everything you need to make learning <em>stick.</em></h2><p>From the first lesson to the final milestone, LearnSphere keeps your next step visible and your progress easy to celebrate.</p><Link className="button button-dark" to="/register">Build your learning rhythm <ArrowRight size={16} /></Link></div>
+          <div className="benefit-list"><div><span><Target size={19} /></span><div><b>Clear milestones</b><p>Know what to learn next and see how close you are to the finish.</p></div></div><div><span><LineChart size={19} /></span><div><b>Visible progress</b><p>Turn small completed lessons into a motivating view of your momentum.</p></div></div><div><span><Users size={19} /></span><div><b>A focused community</b><p>Learn without the noise, pressure, or distraction of endless feeds.</p></div></div></div>
+        </section>
+
+        <section className="platform-highlight">
+          <div className="section-wrap highlight-inner"><div><p className="kicker kicker-light">A calmer learning experience</p><h2>Make progress you can <em>feel.</em></h2><p>LearnSphere brings your courses, lessons, resources, and milestones into one focused space.</p></div><div className="highlight-cards"><div><b>{stats?.courses ?? '—'}</b><span>focused courses</span></div><div><b>{stats?.lessons ?? '—'}</b><span>lessons to explore</span></div><div><b>100%</b><span>free to begin</span></div></div></div>
         </section>
 
         <section className="method-section" id="method">

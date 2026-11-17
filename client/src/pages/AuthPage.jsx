@@ -22,7 +22,11 @@ export default function AuthPage({ mode }) {
     setSubmitting(true);
     try {
       const account = isRegister ? await register(form) : await login({ email: form.email, password: form.password });
-      toast.success(isRegister ? 'Your learning space is ready.' : 'Welcome back.');
+      toast.success(isRegister ? 'Registration successful! Please log in.' : 'Welcome back.');
+      if (isRegister) {
+        navigate('/login', { replace: true });
+        return;
+      }
       const destination = location.state?.from && location.state.from !== '/login' ? location.state.from : (account.role === 'admin' ? '/admin/dashboard' : '/dashboard');
       navigate(destination, { replace: true });
     } catch (error) {

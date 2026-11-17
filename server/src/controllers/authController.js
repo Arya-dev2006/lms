@@ -38,7 +38,6 @@ export async function register(request, response, next) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({ name: name.trim(), email: normalizedEmail, password: hashedPassword });
-    setAuthCookie(response, signToken(user._id.toString()));
     return response.status(201).json({ success: true, user: publicUser(user) });
   } catch (error) {
     return next(error);
@@ -68,4 +67,44 @@ export function logout(_request, response) {
 
 export function getMe(request, response) {
   return response.json({ success: true, user: publicUser(request.user) });
+}
+
+export async function updateProfile(request, response, next) {
+  try {
+    const { name, email } = request.body;
+    if (typeof name !== 'string' || name.trim().length < 2) {
+      return response.status(400).json({ success: false, message: 'Name must be at least 2 characters' });
+    }
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return response.status(400).json({ success: false, message: 'Enter a valid email address' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const duplicate = await User.exists({ email: normalizedEmail, _id: { $ne: request.user._id } });
+    if (duplicate) return response.status(409).json({ success: false, message: 'An account with this email already exists' });
+    const user = await User.findByIdAndUpdate(
+      request.user._id,
+      { name: name.trim(), email: normalizedEmail },
+      { new: true, runValidators: true },
+    );
+    return response.json({ success: true, user: publicUser(user) });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function changePassword(request, response, next) {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = request.body;
+    if (!currentPassword || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword !== confirmPassword) {
+      return response.status(400).json({ success: false, message: 'Provide a matching password of at least 8 characters' });
+    }
+    const user = await User.findById(request.user._id).select('+password');
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!validPassword) return response.status(400).json({ success: false, message: 'Current password is incorrect' });
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+    return response.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    return next(error);
+  }
 }

@@ -6,7 +6,7 @@
 
 ## Login, persistence, and logout
 
-Login uses `AuthPage -> AuthContext.login -> POST /auth/login -> login`. The controller retrieves the password with `select('+password')`, compares bcrypt, rejects inactive users, then sets the cookie. On refresh, `AuthProvider` calls `GET /auth/me`; `protect` verifies the cookie and reloads the active user. Logout from either layout calls `POST /auth/logout`, clears the cookie, clears context, and navigates to `/login`.
+Login uses `AuthPage -> AuthContext.login -> POST /auth/login -> login`. The controller retrieves the password with `select('+password')`, compares bcrypt, rejects inactive users, then sets the cookie. On refresh, `AuthProvider` calls `GET /auth/me`; `protect` verifies the cookie and reloads the active user. Logout from either layout first opens a confirmation dialog. After confirmation it calls `POST /auth/logout`, clears the cookie, clears context, and navigates to `/login`.
 
 ## Admin access
 
